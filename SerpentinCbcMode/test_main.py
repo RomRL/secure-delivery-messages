@@ -8,7 +8,7 @@ class TestSerpentCipher(unittest.TestCase):
     def setUp(self):
         self.hexKey = generate_random_hex_key(64)  # 256-bit keyc
         self.userKey = hexstring2bitstring(self.hexKey)
-        self.iv = os.urandom(16)  # Random IV for CBC mode
+        self.iv = os.urandom(16)  # Random IV for CBC modes
         self.serpent_cipher = SerpentCipherCBC(self.userKey)
 
     def test_encrypt_decrypt(self):
