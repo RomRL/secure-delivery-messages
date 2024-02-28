@@ -400,6 +400,7 @@ def makeSubkeys(userKey):
         O.show("wi", w[i], "(i=%2d) wi" % i)
 
     # We expand these to a prekey w0 ... w131 with the affine recurrence
+
     for i in range(132):
         w[i] = rotateLeft(
             xor(w[i - 8], w[i - 5], w[i - 3], w[i - 1],
