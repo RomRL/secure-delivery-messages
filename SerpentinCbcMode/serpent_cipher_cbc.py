@@ -1,4 +1,4 @@
-import os
+import secrets
 
 from serpent import hexstring2bitstring, SerpentEncryptor, bitstring2hexstring, SerpentDecryptor
 
@@ -14,6 +14,13 @@ def pkcs7_padding(data, block_size=16):
 def pkcs7_unpadding(data):
     padding_len = data[-1]
     return data[:-padding_len]
+
+
+def generate_random_hex_key(length):
+    # Generate random bytes and convert them to a hex string
+    random_bytes = secrets.token_bytes(length // 2)
+    random_hex_key = random_bytes.hex()
+    return random_hex_key
 
 
 class SerpentCipherCBC:
@@ -59,5 +66,3 @@ class SerpentCipherCBC:
 
         decrypted_data = b''.join([bytes.fromhex(block) for block in decrypted_blocks])
         return pkcs7_unpadding(decrypted_data).decode('utf-8')
-
-
