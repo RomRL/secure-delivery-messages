@@ -6,7 +6,7 @@ from SerpentinCbcMode.serpent_cipher_cbc import SerpentCipherCBC, generate_rando
 
 class TestSerpentCipher(unittest.TestCase):
     def setUp(self):
-        self.hexKey = generate_random_hex_key(64)  # 256-bit key
+        self.hexKey = generate_random_hex_key(64)  # 256-bit keyc
         self.userKey = hexstring2bitstring(self.hexKey)
         self.iv = os.urandom(16)  # Random IV for CBC mode
         self.serpent_cipher = SerpentCipherCBC(self.userKey)
