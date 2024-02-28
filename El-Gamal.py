@@ -81,7 +81,7 @@ def decrypt_key(ciphertext, private_key, public_key):
     key = (c2 * s_inv) % p
     return key
 
-# Example usage
+
 public_key, private_key = generate_keypair()
 key_to_transport = 12345
 print("Original key:", key_to_transport)
