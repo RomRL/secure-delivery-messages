@@ -41,6 +41,7 @@ class SerpentCipherCBC:
             encrypted_block_hex = self.encryptor.encrypt(bitstring2hexstring(xor_block))
             encrypted_blocks.append(encrypted_block_hex)
             prev_encrypted_block = hexstring2bitstring(encrypted_block_hex)
+            prev_encrypted_block = hexstring2bitstring(encrypted_block_hex)
 
         return ''.join(encrypted_blocks)
 
