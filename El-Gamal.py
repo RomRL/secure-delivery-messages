@@ -1,5 +1,4 @@
 import random
-import hashlib
 
 # Extended Euclidean Algorithm to find modular inverse
 def extended_gcd(a, b):
@@ -63,32 +62,32 @@ def generate_keypair():
 
     return (p, g, y), x
 
-# Encrypt message
-def encrypt(message, public_key):
+# Encrypt key (message)
+def encrypt_key(key, public_key):
     p, g, y = public_key
     k = random.randint(2, p - 2)
     c1 = mod_exp(g, k, p)
     s = mod_exp(y, k, p)
-    c2 = (s * message) % p
+    c2 = (s * key) % p
     return (c1, c2)
 
-# Decrypt message
-def decrypt(ciphertext, private_key, public_key):
+# Decrypt key (message)
+def decrypt_key(ciphertext, private_key, public_key):
     p, _, _ = public_key
     x = private_key
     c1, c2 = ciphertext
     s = mod_exp(c1, x, p)
     s_inv = mod_inverse(s, p)
-    message = (c2 * s_inv) % p
-    return message
+    key = (c2 * s_inv) % p
+    return key
 
 # Example usage
 public_key, private_key = generate_keypair()
-message = 12345
-print("Original message:", message)
+key_to_transport = 12345
+print("Original key:", key_to_transport)
 
-ciphertext = encrypt(message, public_key)
-print("Ciphertext:", ciphertext)
+ciphertext = encrypt_key(key_to_transport, public_key)
+print("Encrypted key:", ciphertext)
 
-decrypted_message = decrypt(ciphertext, private_key, public_key)
-print("Decrypted message:", decrypted_message)
+decrypted_key = decrypt_key(ciphertext, private_key, public_key)
+print("Decrypted key:", decrypted_key)
