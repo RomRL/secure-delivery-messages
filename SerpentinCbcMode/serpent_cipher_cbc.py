@@ -1,6 +1,6 @@
 import secrets
 
-from serpent import hexstring2bitstring, SerpentEncryptor, bitstring2hexstring, SerpentDecryptor
+from SerpentinCbcMode.serpent import hexstring2bitstring, SerpentEncryptor, bitstring2hexstring, SerpentDecryptor
 
 
 # Assume all other necessary functions and classes have been correctly defined
@@ -38,17 +38,15 @@ class SerpentCipherCBC:
         padded_plaintext = pkcs7_padding(plaintext.encode('utf-8'))
         blocks = [padded_plaintext[i:i + 16] for i in range(0, len(padded_plaintext), 16)]
 
-        # at the start it is the iv bitstring (after first iteration it is the previous encrypted block)
-        prev_encrypted_block = hexstring2bitstring(iv.hex())
+        iv_bitstring = hexstring2bitstring(iv.hex())
         encrypted_blocks = []
 
         for block in blocks:
             block_bitstring = hexstring2bitstring(block.hex())
-            xor_block = self.xor_bitstrings(prev_encrypted_block, block_bitstring)
+            xor_block = self.xor_bitstrings(iv_bitstring, block_bitstring)
             encrypted_block_hex = self.encryptor.encrypt(bitstring2hexstring(xor_block))
             encrypted_blocks.append(encrypted_block_hex)
-            prev_encrypted_block = hexstring2bitstring(encrypted_block_hex)
-            prev_encrypted_block = hexstring2bitstring(encrypted_block_hex)
+            iv_bitstring = hexstring2bitstring(encrypted_block_hex)
 
         return ''.join(encrypted_blocks)
 

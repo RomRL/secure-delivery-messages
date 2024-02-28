@@ -1,5 +1,5 @@
 import re
-from data_table_values import bin2hex, r, phi, SBoxDecimalTable, LTTable, LTTableInverse, IPTable, FPTable
+from SerpentinCbcMode.data_table_values import bin2hex, r, phi, SBoxDecimalTable, LTTable, LTTableInverse, IPTable, FPTable
 
 
 # --------------------------------------------------------------

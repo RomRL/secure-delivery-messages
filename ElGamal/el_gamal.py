@@ -1,5 +1,7 @@
 import random
 
+
+
 # Extended Euclidean Algorithm to find modular inverse
 def extended_gcd(a, b):
     if a == 0:
@@ -8,12 +10,14 @@ def extended_gcd(a, b):
         gcd, x, y = extended_gcd(b % a, a)
         return gcd, y - (b // a) * x, x
 
+
 # Modular inverse using Extended Euclidean Algorithm
 def mod_inverse(a, m):
     gcd, x, _ = extended_gcd(a, m)
     if gcd != 1:
         raise ValueError('Modular inverse does not exist')
     return x % m
+
 
 # Fast modular exponentiation using square and multiply algorithm
 def mod_exp(base, exp, mod):
@@ -26,12 +30,14 @@ def mod_exp(base, exp, mod):
         base = (base * base) % mod
     return result
 
+
 # Generate random prime number
 def generate_prime(bits):
     while True:
         prime_candidate = random.getrandbits(bits)
         if is_prime(prime_candidate):
             return prime_candidate
+
 
 # Check if a number is prime using Fermat's primality test
 def is_prime(n, k=5):
@@ -48,10 +54,11 @@ def is_prime(n, k=5):
             return False
     return True
 
+
 # Generate ElGamal key pair
 def generate_keypair():
     # Generate large prime numbers p and g
-    p = generate_prime(256)
+    p = generate_prime(512)
     g = random.randint(2, p - 2)
 
     # Generate private key x
@@ -62,6 +69,7 @@ def generate_keypair():
 
     return (p, g, y), x
 
+
 # Encrypt key (message)
 def encrypt_key(key, public_key):
     p, g, y = public_key
@@ -70,6 +78,7 @@ def encrypt_key(key, public_key):
     s = mod_exp(y, k, p)
     c2 = (s * key) % p
     return (c1, c2)
+
 
 # Decrypt key (message)
 def decrypt_key(ciphertext, private_key, public_key):
@@ -82,12 +91,3 @@ def decrypt_key(ciphertext, private_key, public_key):
     return key
 
 
-public_key, private_key = generate_keypair()
-key_to_transport = 12345
-print("Original key:", key_to_transport)
-
-ciphertext = encrypt_key(key_to_transport, public_key)
-print("Encrypted key:", ciphertext)
-
-decrypted_key = decrypt_key(ciphertext, private_key, public_key)
-print("Decrypted key:", decrypted_key)
