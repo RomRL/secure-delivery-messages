@@ -1,5 +1,6 @@
 
 # Secure Messaging Application
+[Secure Delivery Messages Application](https://secure-delivery-messages.onrender.com)
 
 ## Overview
 
@@ -58,10 +59,3 @@ Follow the on-screen instructions to send and receive encrypted messages.
 - Regularly update your encryption and signature algorithms to combat vulnerabilities.
 - Use a secure channel for the initial exchange of public keys.
 
-## Contributing
-
-Contributions to improve the application are welcome. Please follow the contributing guidelines outlined in `CONTRIBUTING.md`.
-
-## License
-
-This project is licensed under the MIT License - see the `LICENSE` file for details.
