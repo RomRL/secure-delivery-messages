@@ -53,9 +53,3 @@ Follow the on-screen instructions to send and receive encrypted messages.
 1. **Alice sends a message to Bob**: Alice writes her message and the application encrypts it using Serpent with a key exchanged via El-Gamal. It then signs the message with Alice's ECDSA private key.
 2. **Bob receives Alice's message**: Upon receiving the message, Bob's application verifies the signature using Alice's public key, decrypts the message using the symmetric key, and displays the original message.
 
-## Security Considerations
-
-- Keep your private keys secure and never share them.
-- Regularly update your encryption and signature algorithms to combat vulnerabilities.
-- Use a secure channel for the initial exchange of public keys.
-
