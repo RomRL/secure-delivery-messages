@@ -43,7 +43,7 @@ Before running the application, you must generate key pairs for both El-Gamal an
 To start the application, run:
 
 ```bash
-python app.py
+streamlit run app.py
 ```
 
 Follow the on-screen instructions to send and receive encrypted messages.
