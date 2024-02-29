@@ -134,7 +134,7 @@ def main():
                 st.markdown(f"<p style='color: red;'>{msg}</p>", unsafe_allow_html=True)
             if "Decrypted key" in msg:
                 msg = msg.split(":")
-                st.markdown(f"<p style='color: cyan;'>{msg[0]}</p><p style='color: white;'>{msg[1]}</p>",
+                st.markdown(f"<p style='color: yellow;'>{msg[0]}</p><p style='color: white;'>{msg[1]}</p>",
                             unsafe_allow_html=True)
 
 

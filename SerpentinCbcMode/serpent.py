@@ -150,7 +150,9 @@ def LTBitsliceInverse(X):
 
 
 def IP(input):
-    """Apply the Initial Permutation to the 128-bit bitstring 'input'
+    """
+    Initial Permutation (IP):
+    Apply the Initial Permutation to the 128-bit bitstring 'input'
     and return a 128-bit bitstring as the result."""
 
     return applyPermutation(IPTable, input)
@@ -307,12 +309,35 @@ def encrypt(plainText, userKey):
     O.show("plainText", plainText, "plainText")
     O.show("userKey", userKey, "userKey")
 
+    """
+    Key Schedule: Serpent begins with the generation of 33 128-bit subkeys from the original key, regardless of its size (128, 192, or 256 bits). This is done through a pre-defined 
+    process that includes permutations and translations.
+    """
     K, KHat = makeSubkeys(userKey)
-
+    """
+    Initial Permutation: Before the first round, the plaintext block undergoes an initial permutation (IP)
+     to reorder the bits, preparing the block for encryption.
+    """
     BHat = IP(plainText)  # BHat_0 at this stage
+    """
+    Substitution: The block is divided into four 32-bit sections,
+    and each section is processed through an S-box.
+    There are eight different S-boxes (S0 to S7), 
+    and they are used in a predefined order
+    that repeats every eight rounds. The S-boxes are non-linear transformation functions that provide the algorithm with its confusion property, making the relationship between the ciphertext and the plaintext as complex as possible.
+
+    """
+
     for i in range(r):
         BHat = R(i, BHat, KHat)  # Produce BHat_i+1 from BHat_i
     # BHat is now _32 i.e. _r
+    """
+    Permutation: After substitution, the output undergoes
+     a permutation step, which rearranges the bits to 
+     disperse the influence of each bit across the block
+     , contributing to the diffusion property.
+
+    """
     C = FP(BHat)
 
     O.show("cipherText", C, "cipherText")
@@ -383,7 +408,9 @@ def decryptBitslice(cipherText, userKey):
 
 
 def makeSubkeys(userKey):
-    """Given the 256-bit bitstring 'userKey' (shown as K in the paper, but
+    """
+    Key Schedule
+    Given the 256-bit bitstring 'userKey' (shown as K in the paper, but
     we can't use that name because of a collision with K[i] used later for
     something else), return two lists (conceptually K and KHat) of 33
     128-bit bitstrings each."""
