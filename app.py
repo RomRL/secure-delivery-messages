@@ -1,141 +1,118 @@
 import streamlit as st
 import os
-
 from ElGamal.el_gamal import decrypt_key, encrypt_key, generate_keypair
 from SerpentinCbcMode.serpent import hexstring2bitstring
 from SerpentinCbcMode.serpent_cipher_cbc import SerpentCipherCBC, generate_random_hex_key
 
 
-def main():
+def setup_page():
+    """Configure Streamlit page settings and display the header."""
     st.set_page_config(page_title="Secure Delivery Messages", page_icon=":lock:")
     st.markdown('''
     <h1 style='color: yellow; text-align: center;'>Secure Delivery Messages</h1>
-    <div style='display: flex; justify-content: center;'>
-        <div style='text-align: left;'>
-            <p style='color: cyan; font-size: 20px; margin: 0;'>This is a secure chat application that demonstrates the following:<br></p>
-            <p style='color: white; font-size: 14px; margin: 0;'>Encryption and Decryption with Serpent in CBC mode<br>
-            El-Gamal secret key delivery <br>
-            ECDSA signature for a secure chat</p>
-            <br>            <br>
-
+    <div style='text-align: left;'>
+        <p style='color: cyan; font-size: 20px;'>This is a secure chat application that demonstrates the following:</p>
+        <p style='color: white; font-size: 14px;'> Encryption and Decryption with Serpent in CBC mode<br>
+         El-Gamal secret key delivery <br>
+         ECDSA signature for a secure chat</p>
     </div>
     ''', unsafe_allow_html=True)
 
-    if 'public_key_alise' not in st.session_state and 'private_key_alise' not in st.session_state:
-        st.session_state.public_key_alise, st.session_state.private_key_alise = generate_keypair()
-    if 'public_key_bob' not in st.session_state and 'private_key_bob' not in st.session_state:
-        st.session_state.public_key_bob, st.session_state.private_key_bob = generate_keypair()
-    if 'flag' not in st.session_state:
-        st.session_state.flag = True
-    # Initialize hexKey, iv, and userKey if they don't exist in session state
-    if 'hexKey' not in st.session_state:
-        st.session_state.hexKey = generate_random_hex_key(64)  # 256-bit key
+
+def initialize_keys():
+    print("Initializing keys")
+    """Initialize cryptographic keys and session states."""
+    # Key pair generation for Alice and Bob
+    for user in ['alise', 'bob']:
+        public_key, private_key = 'public_key_' + user, 'private_key_' + user
+        if public_key not in st.session_state:
+            st.session_state[public_key], st.session_state[private_key] = generate_keypair()
+            print(f"public_key_{user}: {st.session_state[public_key]}")
+
+    # Initialization of hexKey and iv for encryption
+    st.session_state['hexKey'] = generate_random_hex_key(64)  # 256-bit key
     st.text(f"Key: {st.session_state.hexKey}")
-    # Encrypt the key using Bob's public key and store it in session state
-    #                                                     KEY                                PUBLIC KEY BOB
-    if 'cipher_key_alise' not in st.session_state:
-        st.session_state.cipher_key_alise = encrypt_key(int(st.session_state.hexKey, 16),
-                                                        st.session_state.public_key_bob)
-    with st.expander("Encrypted key for Bob"):
-        st.markdown(f"<p>C1=  {hex(st.session_state.cipher_key_alise[0])[2:]}</p>", unsafe_allow_html=True)
-        st.markdown(f"<p>C2= {hex(st.session_state.cipher_key_alise[1])[2:]}</p>", unsafe_allow_html=True)
-
-    decrypted_key_bob = st.session_state.decrypted_key_bob = decrypt_key(st.session_state.cipher_key_alise,
-                                                                         st.session_state.private_key_bob,
-                                                                         st.session_state.public_key_bob)
-
-    with st.expander("Decrypted key for Bob"):
-        st.markdown(f"<p>Decrypted key: {hex(decrypted_key_bob)[2:]}</p>", unsafe_allow_html=True)
+    # Encrypt the hexKey with Bob's public key
+    # st.session_state['cipher_key_alise'] = encrypt_key(int(st.session_state.hexKey, 16),
+    #                                                    st.session_state['public_key_bob'])
 
     if 'iv' not in st.session_state:
-        st.session_state.iv = os.urandom(16)  # Generate a random IV
+        st.session_state['iv'] = os.urandom(16)  # Generate a random IV
 
-    if 'userKey' not in st.session_state:
-        st.session_state.userKey = hexstring2bitstring(hex(st.session_state.decrypted_key_bob)[2:])
+
+def display_encryption_details():
+    """Display the encryption details including encrypted and decrypted keys."""
+    with st.expander("Encrypted key for Bob"):
+        st.markdown(f"<p>C1= {hex(st.session_state.cipher_key_alise[0])[2:]}</p>", unsafe_allow_html=True)
+        st.markdown(f"<p>C2= {hex(st.session_state.cipher_key_alise[1])[2:]}</p>", unsafe_allow_html=True)
+
+    decrypted_key = decrypt_key(st.session_state.cipher_key_alise, st.session_state.private_key_bob,
+                                st.session_state.public_key_bob)
+    st.session_state.decrypted_key_bob = decrypted_key
+
+    with st.expander("Decrypted key for Bob"):
+        st.markdown(f"<p>Decrypted key: {hex(decrypted_key)[2:]}</p>", unsafe_allow_html=True)
 
     st.text(f"Initialization Vector: {st.session_state.iv.hex()}")
 
-    # Initialize the Serpent cipher with the user key
-    serpent_cipher = SerpentCipherCBC(st.session_state.userKey)
+    # Convert decrypted key to bitstring for Serpent cipher use
+    if 'userKey' not in st.session_state:
+        st.session_state.userKey = hexstring2bitstring(hex(decrypted_key)[2:])
 
-    # Shared state for messages
+    return SerpentCipherCBC(st.session_state.userKey)
+
+
+def handle_messages(serpent_cipher):
+    """Handle sending and displaying messages between Alice and Bob."""
     if 'messages' not in st.session_state:
         st.session_state.messages = {"alice": [], "bob": []}
 
-
-    # Layout setup: Create two columns for Alice and Bob
     col1, col2 = st.columns(2)
-    public_key_bob = st.session_state.public_key_bob
 
-    if st.session_state.flag:
-        st.session_state.messages["alice"].append(
-            f"Received Public Key Bob p = {hex(public_key_bob[0])[2:]}")
-        st.session_state.messages["alice"].append(
-            f"Received Public Key Bob g = {hex(public_key_bob[1])[2:]}")
-        st.session_state.messages["alice"].append(
-            f"Received Public Key Bob y = {hex(public_key_bob[2])[2:]}")
-        st.session_state.messages["alice"].append(
-            f"Sent To Bob Encrypted key: {st.session_state.cipher_key_alise[0]}")
-        st.session_state.messages["bob"].append(f"Decrypted key: {hex(decrypted_key_bob)[2:]}")
-        st.session_state.flag = False
-    # Alice's interface on the left
     with col1:
-        st.subheader("Alice")
+        user_interface("Alice", serpent_cipher)
 
-        alice_message = st.text_input("Alice says:", key="alice_input")
-        if st.button("Send Message as Alice"):
-
-            if alice_message:
-
-                encrypted_message = serpent_cipher.encrypt_cbc(alice_message, st.session_state.iv)
-                # Append encrypted message to Alice's log
-                st.session_state.messages["alice"].append(f"Encrypted: {encrypted_message}")
-                # Decrypt and append the message to Bob's log
-                decrypted_message = serpent_cipher.decrypt_cbc(encrypted_message, st.session_state.iv)
-                st.session_state.messages["bob"].append(f"Decrypted: {decrypted_message}")
-            else:
-                st.warning("Alice, please enter a message to send.")
-    # Bob's interface on the right
-    # Bob's interface on the right
     with col2:
-        st.subheader("Bob")
-        bob_message = st.text_input("Bob says:", key="bob_input")
-        if st.button("Send Message as Bob", key="send_bob"):
-            if bob_message:
-                encrypted_message = serpent_cipher.encrypt_cbc(bob_message, st.session_state.iv)
-                # Append encrypted message to Bob's log
-                st.session_state.messages["bob"].append(f"Encrypted: {encrypted_message}")
-                # Decrypt and append the message to Alice's log
-                decrypted_message = serpent_cipher.decrypt_cbc(encrypted_message, st.session_state.iv)
-                st.session_state.messages["alice"].append(f"Decrypted: {decrypted_message}")
-            else:
-                st.warning("Bob, please enter a message to send.")
+        user_interface("Bob", serpent_cipher)
 
-    # Display chat logs
+    display_chat_logs()
+
+
+def user_interface(user, serpent_cipher):
+    """User interface for sending and displaying messages."""
+    st.subheader(user)
+    message = st.text_input(f"{user} says:", key=f"{user.lower()}_input")
+    if st.button(f"Send Message as {user}", key=f"send_{user.lower()}"):
+        send_message(user.lower(), message, serpent_cipher)
+
+
+def send_message(user, message, serpent_cipher):
+    """Encrypt and append messages to the chat log."""
+    if message:
+        encrypted_message = serpent_cipher.encrypt_cbc(message, st.session_state.iv)
+        st.session_state.messages[user].append(f"Encrypted: {encrypted_message}")
+        decrypted_message = serpent_cipher.decrypt_cbc(encrypted_message, st.session_state.iv)
+        recipient = "bob" if user == "alice" else "alice"
+        st.session_state.messages[recipient].append(f"Decrypted: {decrypted_message}")
+    else:
+        st.warning(f"{user.capitalize()}, please enter a message to send.")
+
+
+def display_chat_logs():
+    """Display the chat logs for Alice and Bob."""
     st.write("## Chat Log")
-    with st.expander("Alice's Messages"):
-        for msg in st.session_state.messages["alice"]:
-            if msg.startswith("Encrypted"):
-                st.markdown(f"<p style='color: red;'>{msg}</p>", unsafe_allow_html=True)
-            if msg.startswith("Decrypted"):
-                st.markdown(f"<p style='color: cyan;'>{msg}</p>", unsafe_allow_html=True)
-            if msg.startswith("Received"):
-                msg = msg.split("=")
-                st.markdown(f"<p style='color: yellow;'>{msg[0]} </p><p style='color: white;'>{msg[1]}</p>",
-                            unsafe_allow_html=True)
+    for user in ["Alice's Messages", "Bob's Messages"]:
+        with st.expander(user):
+            for msg in st.session_state.messages[user.split("'")[0].lower()]:
+                color = 'red' if "Encrypted" in msg else 'cyan'
+                st.markdown(f"<p style='color: {color};'>{msg}</p>", unsafe_allow_html=True)
 
 
-
-    with st.expander("Bob's Messages"):
-        for msg in st.session_state.messages["bob"]:
-            if "Decrypted" in msg and "Decrypted key" not in msg:
-                st.markdown(f"<p style='color: cyan;'>{msg}</p>", unsafe_allow_html=True)
-            if "Encrypted" in msg:
-                st.markdown(f"<p style='color: red;'>{msg}</p>", unsafe_allow_html=True)
-            if "Decrypted key" in msg:
-                msg = msg.split(":")
-                st.markdown(f"<p style='color: yellow;'>{msg[0]}</p><p style='color: white;'>{msg[1]}</p>",
-                            unsafe_allow_html=True)
+def main():
+    setup_page()
+    initialize_keys()
+    serpent_cipher = display_encryption_details()
+    handle_messages(serpent_cipher)
 
 
 if __name__ == "__main__":
