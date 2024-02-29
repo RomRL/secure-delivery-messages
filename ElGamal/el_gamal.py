@@ -1,7 +1,6 @@
 import random
 
 
-
 # Extended Euclidean Algorithm to find modular inverse
 def extended_gcd(a, b):
     if a == 0:
@@ -56,28 +55,22 @@ def is_prime(n, k=5):
 
 
 # Generate ElGamal key pair
-def generate_keypair():
-    # Generate large prime numbers p and g
-    p = generate_prime(512)
-    g = random.randint(2, p - 2)
-
+def generate_keypair(p:int,g:int):
     # Generate private key x
-    x = random.randint(2, p - 2)
-
+    k = random.randint(2, p - 2)
     # Calculate public key y
-    y = mod_exp(g, x, p)
-
-    return (p, g, y), x
+    y = mod_exp(g, k, p)
+    return (p, g, y), k
 
 
 # Encrypt key (message)
-def encrypt_key(key, public_key):
+def encrypt_key(key,private_key, public_key):
     p, g, y = public_key
     k = random.randint(2, p - 2)
-    c1 = mod_exp(g, k, p)
-    s = mod_exp(y, k, p)
+    c1 = mod_exp(g, private_key, p)
+    s = mod_exp(y, private_key, p)
     c2 = (s * key) % p
-    return (c1, c2)
+    return c1, c2
 
 
 # Decrypt key (message)
@@ -89,5 +82,3 @@ def decrypt_key(ciphertext, private_key, public_key):
     s_inv = mod_inverse(s, p)
     key = (c2 * s_inv) % p
     return key
-
-

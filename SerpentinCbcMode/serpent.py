@@ -421,53 +421,56 @@ def makeSubkeys(userKey):
 
     # We write the key as 8 32-bit words w-8 ... w-1
     # ENOTE: w-8 is the least significant word
-    w = {}
-    for i in range(-8, 0):
-        w[i] = userKey[(i + 8) * 32:(i + 9) * 32]
-        O.show("wi", w[i], "(i=%2d) wi" % i)
+    try:
+        w = {}
+        for i in range(-8, 0):
+            w[i] = userKey[(i + 8) * 32:(i + 9) * 32]
+            O.show("wi", w[i], "(i=%2d) wi" % i)
 
-    # We expand these to a prekey w0 ... w131 with the affine recurrence
+        # We expand these to a prekey w0 ... w131 with the affine recurrence
 
-    for i in range(132):
-        w[i] = rotateLeft(
-            xor(w[i - 8], w[i - 5], w[i - 3], w[i - 1],
-                bitstring(phi, 32), bitstring(i, 32)),
-            11)
-        O.show("wi", w[i], "(i=%2d) wi" % i)
+        for i in range(132):
+            w[i] = rotateLeft(
+                xor(w[i - 8], w[i - 5], w[i - 3], w[i - 1],
+                    bitstring(phi, 32), bitstring(i, 32)),
+                11)
+            O.show("wi", w[i], "(i=%2d) wi" % i)
 
-    # The round keys are now calculated from the prekeys using the S-boxes
-    # in bitslice mode. Each k[i] is a 32-bit bitstring.
-    k = {}
-    for i in range(r + 1):
-        whichS = (r + 3 - i) % r
-        k[0 + 4 * i] = ""
-        k[1 + 4 * i] = ""
-        k[2 + 4 * i] = ""
-        k[3 + 4 * i] = ""
-        for j in range(32):  # for every bit in the k and w words
-            # ENOTE: w0 and k0 are the least significant words, w99 and k99
-            # the most.
-            input = w[0 + 4 * i][j] + w[1 + 4 * i][j] + w[2 + 4 * i][j] + w[3 + 4 * i][j]
-            output = S(whichS, input)
-            for l in range(4):
-                k[l + 4 * i] = k[l + 4 * i] + output[l]
+        # The round keys are now calculated from the prekeys using the S-boxes
+        # in bitslice mode. Each k[i] is a 32-bit bitstring.
+        k = {}
+        for i in range(r + 1):
+            whichS = (r + 3 - i) % r
+            k[0 + 4 * i] = ""
+            k[1 + 4 * i] = ""
+            k[2 + 4 * i] = ""
+            k[3 + 4 * i] = ""
+            for j in range(32):  # for every bit in the k and w words
+                # ENOTE: w0 and k0 are the least significant words, w99 and k99
+                # the most.
+                input = w[0 + 4 * i][j] + w[1 + 4 * i][j] + w[2 + 4 * i][j] + w[3 + 4 * i][j]
+                output = S(whichS, input)
+                for l in range(4):
+                    k[l + 4 * i] = k[l + 4 * i] + output[l]
 
-    # We then renumber the 32 bit values k_j as 128 bit subkeys K_i.
-    K = []
-    for i in range(33):
-        # ENOTE: k4i is the least significant word, k4i+3 the most.
-        K.append(k[4 * i] + k[4 * i + 1] + k[4 * i + 2] + k[4 * i + 3])
+        # We then renumber the 32 bit values k_j as 128 bit subkeys K_i.
+        K = []
+        for i in range(33):
+            # ENOTE: k4i is the least significant word, k4i+3 the most.
+            K.append(k[4 * i] + k[4 * i + 1] + k[4 * i + 2] + k[4 * i + 3])
 
-    # We now apply IP to the round key in order to place the key bits in
-    # the correct column
-    KHat = []
-    for i in range(33):
-        KHat.append(IP(K[i]))
+        # We now apply IP to the round key in order to place the key bits in
+        # the correct column
+        KHat = []
+        for i in range(33):
+            KHat.append(IP(K[i]))
 
-        O.show("Ki", K[i], "(i=%2d) Ki" % i)
-        O.show("KHati", KHat[i], "(i=%2d) KHati" % i)
+            O.show("Ki", K[i], "(i=%2d) Ki" % i)
+            O.show("KHati", KHat[i], "(i=%2d) KHati" % i)
 
-    return K, KHat
+        return K, KHat
+    except Exception as e:
+        print(e)
 
 
 def makeLongKey(k):
@@ -528,25 +531,29 @@ def bitstring(n, minlen=1):
 
 
 def binaryXor(n1, n2):
-    """Return the xor of two bitstrings of equal length as another
-    bitstring of the same length.
+    try:
 
-    EXAMPLE: binaryXor("10010", "00011") -> "10001"
-    """
+        """Return the xor of two bitstrings of equal length as another
+        bitstring of the same length.
+    
+        EXAMPLE: binaryXor("10010", "00011") -> "10001"
+        """
 
-    if len(n1) != len(n2):
-        raise ValueError("can't xor bitstrings of different " + \
-                         "lengths (%d and %d)" % (len(n1), len(n2)))
-    # We assume that they are genuine bitstrings instead of just random
-    # character strings.
+        if len(n1) != len(n2):
+            raise ValueError("can't xor bitstrings of different " + \
+                             "lengths (%d and %d)" % (len(n1), len(n2)))
+        # We assume that they are genuine bitstrings instead of just random
+        # character strings.
 
-    result = ""
-    for i in range(len(n1)):
-        if n1[i] == n2[i]:
-            result = result + "0"
-        else:
-            result = result + "1"
-    return result
+        result = ""
+        for i in range(len(n1)):
+            if n1[i] == n2[i]:
+                result = result + "0"
+            else:
+                result = result + "1"
+        return result
+    except Exception as e:
+        print(e)
 
 
 def xor(*args):
@@ -574,10 +581,11 @@ def rotateLeft(input, places):
 
     EXAMPLE: rotateLeft("000111", 2) -> "110001"
     """
-
-    p = places % len(input)
-    return input[-p:] + input[:-p]
-
+    try:
+        p = places % len(input)
+        return input[-p:] + input[:-p]
+    except Exception as e:
+        print(e)
 
 def rotateRight(input, places):
     return rotateLeft(input, -places)
@@ -804,8 +812,12 @@ def convertToBitstring(input, numBits):
 
 class SerpentEncryptor:
     def __init__(self, userKey):
-        self.userKey = userKey
-        self.K, self.KHat = makeSubkeys(userKey)
+        try:
+            self.userKey = userKey
+            self.K, self.KHat = makeSubkeys(userKey)
+        except Exception as e:
+            print(e)
+
 
     def encrypt(self, plainText):
         # Convert plaintext to bitstring, assuming it's in hex format for this example

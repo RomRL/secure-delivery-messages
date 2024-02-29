@@ -23,7 +23,7 @@ class TestSerpentCipher(unittest.TestCase):
 
         print("Decrypted key:", decrypted_key_bob)
         # convert int to hex
-        self.userKey = hexstring2bitstring(hex(decrypted_key_bob)[2:])
+        self.userKey = hexstring2bitstring(hex(decrypted_key_bob))
 
         self.iv = os.urandom(16)  # Random IV for CBC modes 16 bytes = 128 bits
 
