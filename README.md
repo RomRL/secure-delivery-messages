@@ -15,23 +15,22 @@ This application offers a robust secure messaging service, utilizing advanced en
 
 ### Prerequisites
 
-- Python 3.6 or later
-- PyCryptodome library for encryption and decryption
-- An ECDSA library for digital signatures
+- Python 3.9 or later
+
 
 ### Installation
 
 Clone this repository to your local machine:
 
 ```bash
-git clone https://yourrepository.com/secure-messaging-app.git
+git clone https://github.com/RomRL/secure-delivery-messages.git
 cd secure-messaging-app
 ```
 
 Install the required dependencies:
 
 ```bash
-pip install pycryptodome ecdsa
+pip install -r requirements.txt
 ```
 
 ### Configuration
