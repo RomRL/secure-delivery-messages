@@ -38,13 +38,10 @@ def main():
             <br><br>
     </div>
     ''', unsafe_allow_html=True)
-
     initialize_session_state()
-
     col1, col2 = st.columns(2)
-
     with col1:
-        st.subheader("Alice")
+        st.subheader(body="Alice")
         alice_interaction()
 
     with col2:
@@ -56,13 +53,14 @@ def main():
 
 def alice_interaction():
     alice_message = st.text_input("Alice says:", key="alice_input")
+
     if st.button("Send Message as Alice"):
         send_message(alice_message, 'alice')
 
 
 def bob_interaction():
     bob_message = st.text_input("Bob says:", key="bob_input")
-    if st.button("Send Message as Bob"):
+    if st.button(label="Send Message as Bob "):
         send_message(bob_message, 'bob')
 
 
