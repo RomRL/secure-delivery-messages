@@ -36,6 +36,7 @@ def main():
             El-Gamal secret key delivery <br>
             ECDSA signature for a secure chat</p>
             <br><br>
+            
     </div>
     ''', unsafe_allow_html=True)
     initialize_session_state()
