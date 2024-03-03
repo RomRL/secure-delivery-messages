@@ -23,7 +23,7 @@ def initialize_session_state():
         st.session_state.iv = os.urandom(16)
 
     if 'messages' not in st.session_state:
-        st.session_state.messages = {"alice": [], "bob": []}
+        st.session_state.messages = {"alice": ["ALICE"], "bob": ["BOB"]}
 
 
 def main():
@@ -32,8 +32,8 @@ def main():
     <h1 style='color: yellow; text-align: center;'>Secure Delivery Messages</h1>
     <div style='display: flex; justify-content: center;'>
         <div style='text-align: left;'>
-            <p style='color: cyan; font-size: 20px; margin: 0;'>This is a secure chat application that demonstrates the following:<br></p>
-            <p style='color: white; font-size: 14px; margin: 0;'>Encryption and Decryption with Serpent in CBC mode<br>
+            <p style='color: cyan; font-size: 20px; margin: 0;font-weight: bold;'>This is a secure chat application that demonstrates the following:<br></p>
+            <p style='color: white; font-size: 14px; margin: 0;font-weight: bold;'>Encryption and Decryption with Serpent in CBC mode<br>
             El-Gamal secret key delivery <br>
             ECDSA signature for a secure chat</p>
             <br><br>
@@ -121,8 +121,11 @@ def send_message(message, sender):
 def display_chat_logs():
     st.write("## Chat Log")
     for user in ['alice', 'bob']:
-        with st.expander(f"{user.capitalize()}'s Messages"):
+        with st.chat_message(f"user") if user == 'alice' else st.chat_message(f"assistant"):
             for msg in st.session_state.messages[user]:
+                if 'ALICE' in msg or 'BOB' in msg:
+                    st.markdown(f"<p style='color: yellow; font-size: 20px;font-weight: bold;'>{msg}</p>", unsafe_allow_html=True)
+                    continue
                 color = 'cyan' if 'Decrypted' in msg else 'red'
                 st.markdown(f"<p style='color: {color};'>{msg}</p>", unsafe_allow_html=True)
 
