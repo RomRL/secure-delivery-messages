@@ -367,24 +367,27 @@ def encryptBitslice(plainText, userKey):
 
 
 def decrypt(cipherText, userKey):
-    """Decrypt the 128-bit bitstring 'cipherText' with the 256-bit
-    bitstring 'userKey', using the normal algorithm, and return a 128-bit
-    plaintext bitstring."""
+    try:
+        """Decrypt the 128-bit bitstring 'cipherText' with the 256-bit
+        bitstring 'userKey', using the normal algorithm, and return a 128-bit
+        plaintext bitstring."""
 
-    O.show("fnTitle", "decrypt", None, "tu")
-    O.show("cipherText", cipherText, "cipherText")
-    O.show("userKey", userKey, "userKey")
+        O.show("fnTitle", "decrypt", None, "tu")
+        O.show("cipherText", cipherText, "cipherText")
+        O.show("userKey", userKey, "userKey")
 
-    K, KHat = makeSubkeys(userKey)
+        K, KHat = makeSubkeys(userKey)
 
-    BHat = FPInverse(cipherText)  # BHat_r at this stage
-    for i in range(r - 1, -1, -1):  # from r-1 down to 0 included
-        BHat = RInverse(i, BHat, KHat)  # Produce BHat_i from BHat_i+1
-    # BHat is now _0
-    plainText = IPInverse(BHat)
+        BHat = FPInverse(cipherText)  # BHat_r at this stage
+        for i in range(r - 1, -1, -1):  # from r-1 down to 0 included
+            BHat = RInverse(i, BHat, KHat)  # Produce BHat_i from BHat_i+1
+        # BHat is now _0
+        plainText = IPInverse(BHat)
 
-    O.show("plainText", plainText, "plainText")
-    return plainText
+        O.show("plainText", plainText, "plainText")
+        return plainText
+    except Exception as e:
+        print(e)
 
 
 def decryptBitslice(cipherText, userKey):
@@ -829,8 +832,11 @@ class SerpentEncryptor:
 
 class SerpentDecryptor:
     def __init__(self, userKey):
-        self.userKey = userKey
-        self.K, self.KHat = makeSubkeys(userKey)
+        try:
+            self.userKey = userKey
+            self.K, self.KHat = makeSubkeys(userKey)
+        except Exception as e:
+            print(e)
 
     def decrypt(self, cipherText):
         # Convert ciphertext to bitstring

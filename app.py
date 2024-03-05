@@ -1,10 +1,11 @@
 import random
 import os
 import streamlit as st
+
+from ECDSA.ECDSA import ECDSA
 from ElGamal.el_gamal import decrypt_key, encrypt_key, generate_keypair, generate_prime
 from SerpentinCbcMode.serpent import hexstring2bitstring
 from SerpentinCbcMode.serpent_cipher_cbc import SerpentCipherCBC, generate_random_hex_key
-from ECDSA.ecdsa import ECDSA
 
 
 def initialize_session_state():
@@ -18,23 +19,23 @@ def initialize_session_state():
         st.session_state.public_key_alice_ecdsa, st.session_state.private_key_alice_ecdsa = st.session_state.ecdsa.gen_ecdsa_key_pair()
 
     if 'private_key_bob_ecdsa' not in st.session_state or 'public_key_bob_ecdsa' not in st.session_state:
-        st.session_state.public_key_bob_ecdsa, st.session_state.private_key_bob_ecdsa =  st.session_state.ecdsa.gen_ecdsa_key_pair()      
+        st.session_state.public_key_bob_ecdsa, st.session_state.private_key_bob_ecdsa = st.session_state.ecdsa.gen_ecdsa_key_pair()
 
     if 'private_key_alice_elgamal' not in st.session_state or 'public_key_alice_elgamal' not in st.session_state:
-        st.session_state.public_key_alice_elgamal, st.session_state.private_key_alice_elgamal = generate_keypair(st.session_state.p,
-                                                                                                 st.session_state.g)
+        st.session_state.public_key_alice_elgamal, st.session_state.private_key_alice_elgamal = generate_keypair(
+            st.session_state.p,
+            st.session_state.g)
 
     if 'private_key_bob_elgamal' not in st.session_state or 'public_key_bob_elgamal' not in st.session_state:
-        st.session_state.public_key_bob_elgamal, st.session_state.private_key_bob_elgamal = generate_keypair(st.session_state.p,
-                                                                                             st.session_state.g)
+        st.session_state.public_key_bob_elgamal, st.session_state.private_key_bob_elgamal = generate_keypair(
+            st.session_state.p,
+            st.session_state.g)
 
     if 'iv' not in st.session_state:
         st.session_state.iv = os.urandom(16)
 
     if 'messages' not in st.session_state:
         st.session_state.messages = {"alice": [], "bob": []}
-
-    
 
 
 def main():
@@ -83,53 +84,59 @@ def send_message(message, sender):
         if sender == 'alice':
             st.session_state.public_key_alice_elgamal, st.session_state.private_key_alice_elgamal = generate_keypair(
                 st.session_state.p, st.session_state.g)
+            st.session_state.public_key_alice_ecdsa, st.session_state.private_key_alice_ecdsa = st.session_state.ecdsa.gen_ecdsa_key_pair()
             hexKey = generate_random_hex_key(64)
             key_to_transport = int(hexKey, 16)
             cipher_key = encrypt_key(key=key_to_transport, private_key=st.session_state.private_key_alice_elgamal,
                                      public_key=st.session_state.public_key_bob_elgamal)
-            
+
             cipher_key_str = ''.join(map(str, cipher_key))
-            signature = st.session_state.ecdsa.sign( st.session_state.private_key_alice_ecdsa,cipher_key_str)           
+
+            signature = st.session_state.ecdsa.sign(st.session_state.private_key_alice_ecdsa, cipher_key_str)
             recipient = 'bob'
         else:
+
             st.session_state.public_key_bob_elgamal, st.session_state.private_key_bob_elgamal = generate_keypair(
                 st.session_state.p, st.session_state.g)
+            st.session_state.public_key_bob_ecdsa, st.session_state.private_key_bob_ecdsa = st.session_state.ecdsa.gen_ecdsa_key_pair()
+
             hexKey = generate_random_hex_key(64)
             key_to_transport = int(hexKey, 16)
 
             cipher_key = encrypt_key(key=key_to_transport, private_key=st.session_state.private_key_bob_elgamal,
                                      public_key=st.session_state.public_key_alice_elgamal)
-           
+
             cipher_key_str = ''.join(map(str, cipher_key))
-            signature = st.session_state.ecdsa.sign( st.session_state.private_key_bob_ecdsa,cipher_key_str)           
-          
+            signature = st.session_state.ecdsa.sign(st.session_state.private_key_bob_ecdsa, cipher_key_str)
+
             recipient = 'alice'
 
-        verification = st.session_state.ecdsa.verify(public_key=st.session_state.public_key_alice_ecdsa if recipient == 'bob' else st.session_state.public_key_alice_ecdsa,
-                                                        message=cipher_key_str,
-                                                        signature=signature)
-        if not verification:
-            st.warning(f"Message from {sender.capitalize()} is not verified")
-            return                                           
+        verification = st.session_state.ecdsa.verify(
+            public_key=st.session_state.public_key_alice_ecdsa if recipient == 'bob' else st.session_state.public_key_bob_ecdsa,
+            message=cipher_key_str,
+            signature=signature)
+        st.session_state.verify = (verification, recipient)
+
         decrypted_key = decrypt_key(cipher_key,
                                     private_key=st.session_state.private_key_bob_elgamal if recipient == 'bob' else st.session_state.private_key_alice_elgamal,
                                     public_key=st.session_state.public_key_bob_elgamal if recipient == 'bob' else st.session_state.public_key_alice_elgamal)
         with st.sidebar:
-                st.markdown('## Key Information : ')
-                st.write(f"### IV", unsafe_allow_html=True)
-                st.write(f"<span style='color:orange'>{st.session_state.iv.hex()}</span>",unsafe_allow_html=True)
-                st.write(f"### Original Key", unsafe_allow_html=True)
-                st.write(f"<span style='color:yellow'>{hex(key_to_transport)[2:]}</span>",unsafe_allow_html=True)
-                st.write(f"# {sender.upper()}")
-                st.write(f"### Message Key:")
-                st.write(f"- Encrypted Key (C1)",unsafe_allow_html=True)
-                st.write(f"<span style='color:cyan'>{hex(cipher_key[0])[2:]}{hex(decrypted_key)[2:]}</span>",unsafe_allow_html=True)
-                st.write(f"- Encrypted Key (C2)",unsafe_allow_html=True)
-                st.write(f"<span style='color:cyan'>{hex(cipher_key[1])[2:]}{hex(decrypted_key)[2:]}</span>",unsafe_allow_html=True)
-                st.write(f"# {recipient.upper()}")
-                st.write(f"{recipient} Decrypted Key: <span style='color:yellow'>{hex(decrypted_key)[2:]}</span>",
-                         unsafe_allow_html=True)
-
+            st.markdown('## Key Information : ')
+            st.write(f"### IV", unsafe_allow_html=True)
+            st.write(f"<span style='color:orange'>{st.session_state.iv.hex()}</span>", unsafe_allow_html=True)
+            st.write(f"### Original Key", unsafe_allow_html=True)
+            st.write(f"<span style='color:yellow'>{hex(key_to_transport)[2:]}</span>", unsafe_allow_html=True)
+            st.write(f"# {sender.upper()}")
+            st.write(f"### Message Key:")
+            st.write(f"- Encrypted Key (C1)", unsafe_allow_html=True)
+            st.write(f"<span style='color:cyan'>{hex(cipher_key[0])[2:]}{hex(decrypted_key)[2:]}</span>",
+                     unsafe_allow_html=True)
+            st.write(f"- Encrypted Key (C2)", unsafe_allow_html=True)
+            st.write(f"<span style='color:cyan'>{hex(cipher_key[1])[2:]}{hex(decrypted_key)[2:]}</span>",
+                     unsafe_allow_html=True)
+            st.write(f"# {recipient.upper()}")
+            st.write(f"{recipient} Decrypted Key: <span style='color:yellow'>{hex(decrypted_key)[2:]}</span>",
+                     unsafe_allow_html=True)
 
         serpent_cipher_encryption = SerpentCipherCBC(hexstring2bitstring(hexKey))
         encrypted_message = serpent_cipher_encryption.encrypt_cbc(message, st.session_state.iv)
@@ -143,6 +150,14 @@ def send_message(message, sender):
 
 
 def display_chat_logs():
+    try:
+        if st.session_state.verify[0]:
+            st.success(f"Signature Verified Successfully for {st.session_state.verify[1].capitalize()}")
+        else:
+            st.error(f"Signature Verification Failed for {st.session_state.verify[1].capitalize()}")
+    except AttributeError:
+        pass
+
     st.write("## Chat Log")
     for user in ['alice', 'bob']:
         with st.expander(f"{user.capitalize()}'s Messages"):

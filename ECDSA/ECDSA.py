@@ -77,14 +77,3 @@ class ECDSA:
         public_key = self.get_public_key(private_key)
         return public_key, private_key
     
-# Example usage
-ecdsa = ECDSA()
-alice_private_key = ecdsa.gen_private_key()
-alice_public_key = ecdsa.get_public_key(alice_private_key)
-bob_private_key = ecdsa.gen_private_key()
-bob_public_key = ecdsa.get_public_key(bob_private_key)
-
-message = "Hello, Bob!"
-signature = ecdsa.sign(alice_private_key, message)
-verification = ecdsa.verify(alice_public_key, message, signature)
-print("Verification:", verification)
