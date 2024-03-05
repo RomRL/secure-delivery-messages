@@ -4,19 +4,28 @@ import streamlit as st
 from ElGamal.el_gamal import decrypt_key, encrypt_key, generate_keypair, generate_prime
 from SerpentinCbcMode.serpent import hexstring2bitstring
 from SerpentinCbcMode.serpent_cipher_cbc import SerpentCipherCBC, generate_random_hex_key
+from ECDSA.ecdsa import ECDSA
 
 
 def initialize_session_state():
     if 'p' not in st.session_state or 'g' not in st.session_state:
         st.session_state.p, st.session_state.g = generate_prime(512), random.randint(2, 512)
 
+    if "ecdsa" not in st.session_state:
+        st.session_state.ecdsa = ECDSA()
 
-    if 'private_key_alice' not in st.session_state or 'public_key_alice' not in st.session_state:
-        st.session_state.public_key_alice, st.session_state.private_key_alice = generate_keypair(st.session_state.p,
+    if 'private_key_alice_ecdsa' not in st.session_state or 'public_key_alice_ecdsa' not in st.session_state:
+        st.session_state.public_key_alice_ecdsa, st.session_state.private_key_alice_ecdsa = st.session_state.ecdsa.gen_ecdsa_key_pair()
+
+    if 'private_key_bob_ecdsa' not in st.session_state or 'public_key_bob_ecdsa' not in st.session_state:
+        st.session_state.public_key_bob_ecdsa, st.session_state.private_key_bob_ecdsa =  st.session_state.ecdsa.gen_ecdsa_key_pair()      
+
+    if 'private_key_alice_elgamal' not in st.session_state or 'public_key_alice_elgamal' not in st.session_state:
+        st.session_state.public_key_alice_elgamal, st.session_state.private_key_alice_elgamal = generate_keypair(st.session_state.p,
                                                                                                  st.session_state.g)
 
-    if 'private_key_bob' not in st.session_state or 'public_key_bob' not in st.session_state:
-        st.session_state.public_key_bob, st.session_state.private_key_bob = generate_keypair(st.session_state.p,
+    if 'private_key_bob_elgamal' not in st.session_state or 'public_key_bob_elgamal' not in st.session_state:
+        st.session_state.public_key_bob_elgamal, st.session_state.private_key_bob_elgamal = generate_keypair(st.session_state.p,
                                                                                              st.session_state.g)
 
     if 'iv' not in st.session_state:
@@ -24,6 +33,8 @@ def initialize_session_state():
 
     if 'messages' not in st.session_state:
         st.session_state.messages = {"alice": [], "bob": []}
+
+    
 
 
 def main():
@@ -70,26 +81,39 @@ def bob_interaction():
 def send_message(message, sender):
     if message:
         if sender == 'alice':
-            st.session_state.public_key_alice, st.session_state.private_key_alice = generate_keypair(
+            st.session_state.public_key_alice_elgamal, st.session_state.private_key_alice_elgamal = generate_keypair(
                 st.session_state.p, st.session_state.g)
             hexKey = generate_random_hex_key(64)
             key_to_transport = int(hexKey, 16)
-            cipher_key = encrypt_key(key=key_to_transport, private_key=st.session_state.private_key_alice,
-                                     public_key=st.session_state.public_key_bob)
+            cipher_key = encrypt_key(key=key_to_transport, private_key=st.session_state.private_key_alice_elgamal,
+                                     public_key=st.session_state.public_key_bob_elgamal)
+            
+            cipher_key_str = ''.join(map(str, cipher_key))
+            signature = st.session_state.ecdsa.sign( st.session_state.private_key_alice_ecdsa,cipher_key_str)           
             recipient = 'bob'
         else:
-            st.session_state.public_key_bob, st.session_state.private_key_bob = generate_keypair(
+            st.session_state.public_key_bob_elgamal, st.session_state.private_key_bob_elgamal = generate_keypair(
                 st.session_state.p, st.session_state.g)
             hexKey = generate_random_hex_key(64)
             key_to_transport = int(hexKey, 16)
 
-            cipher_key = encrypt_key(key=key_to_transport, private_key=st.session_state.private_key_bob,
-                                     public_key=st.session_state.public_key_alice)
+            cipher_key = encrypt_key(key=key_to_transport, private_key=st.session_state.private_key_bob_elgamal,
+                                     public_key=st.session_state.public_key_alice_elgamal)
+           
+            cipher_key_str = ''.join(map(str, cipher_key))
+            signature = st.session_state.ecdsa.sign( st.session_state.private_key_bob_ecdsa,cipher_key_str)           
+          
             recipient = 'alice'
 
+        verification = st.session_state.ecdsa.verify(public_key=st.session_state.public_key_alice_ecdsa if recipient == 'bob' else st.session_state.public_key_alice_ecdsa,
+                                                        message=cipher_key_str,
+                                                        signature=signature)
+        if not verification:
+            st.warning(f"Message from {sender.capitalize()} is not verified")
+            return                                           
         decrypted_key = decrypt_key(cipher_key,
-                                    private_key=st.session_state.private_key_bob if recipient == 'bob' else st.session_state.private_key_alice,
-                                    public_key=st.session_state.public_key_bob if recipient == 'bob' else st.session_state.public_key_alice)
+                                    private_key=st.session_state.private_key_bob_elgamal if recipient == 'bob' else st.session_state.private_key_alice_elgamal,
+                                    public_key=st.session_state.public_key_bob_elgamal if recipient == 'bob' else st.session_state.public_key_alice_elgamal)
         with st.sidebar:
                 st.markdown('## Key Information : ')
                 st.write(f"### IV", unsafe_allow_html=True)
