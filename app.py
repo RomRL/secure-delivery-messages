@@ -35,29 +35,27 @@ def initialize_session_state():
         st.session_state.iv = os.urandom(16)
 
     if 'messages' not in st.session_state:
-        st.session_state.messages = {"alice": [], "bob": []}
+        st.session_state.messages = {"alice": ["ALICE"], "bob": ["BOB"]}
 
 
 def main():
     st.set_page_config(page_title="Secure Delivery Messages", page_icon=":lock:")
     st.markdown('''
-    <h1 style='color: yellow; text-align: center;'>Secure Delivery Messages</h1>
+    <h1 style='color: yellow; text-align: center;'> 🔒 Secure Delivery Messages </h1>
     <div style='display: flex; justify-content: center;'>
         <div style='text-align: left;'>
-            <p style='color: cyan; font-size: 20px; margin: 0;'>This is a secure chat application that demonstrates the following:<br></p>
-            <p style='color: white; font-size: 14px; margin: 0;'>Encryption and Decryption with Serpent in CBC mode<br>
+            <p style='color: cyan; font-size: 20px; margin: 0;font-weight: bold;'>This is a secure chat application that demonstrates the following:<br></p>
+            <p style='color: white; font-size: 14px; margin: 0;font-weight: bold;'>Encryption and Decryption with Serpent in CBC mode<br>
             El-Gamal secret key delivery <br>
             ECDSA signature for a secure chat</p>
             <br><br>
+            
     </div>
     ''', unsafe_allow_html=True)
-
     initialize_session_state()
-
     col1, col2 = st.columns(2)
-
     with col1:
-        st.subheader("Alice")
+        st.subheader(body="Alice")
         alice_interaction()
 
     with col2:
@@ -69,13 +67,14 @@ def main():
 
 def alice_interaction():
     alice_message = st.text_input("Alice says:", key="alice_input")
+
     if st.button("Send Message as Alice"):
         send_message(alice_message, 'alice')
 
 
 def bob_interaction():
     bob_message = st.text_input("Bob says:", key="bob_input")
-    if st.button("Send Message as Bob"):
+    if st.button(label="Send Message as Bob "):
         send_message(bob_message, 'bob')
 
 
@@ -160,8 +159,13 @@ def display_chat_logs():
 
     st.write("## Chat Log")
     for user in ['alice', 'bob']:
-        with st.expander(f"{user.capitalize()}'s Messages"):
+        with st.chat_message(name="user", avatar='👱‍♀️') if user == 'alice' else st.chat_message(name='bob',
+                                                                                                 avatar='🙍‍♂️'):
             for msg in st.session_state.messages[user]:
+                if 'ALICE' in msg or 'BOB' in msg:
+                    str_markdown = f"<p style='color: yellow; font-size: 20px;font-weight: bold;'>{msg}</p>" if user == 'alice' else f"<p style='color: cyan; font-size: 20px;font-weight: bold;'>{msg}</p>"
+                    st.markdown(str_markdown, unsafe_allow_html=True)
+                    continue
                 color = 'cyan' if 'Decrypted' in msg else 'red'
                 st.markdown(f"<p style='color: {color};'>{msg}</p>", unsafe_allow_html=True)
 
