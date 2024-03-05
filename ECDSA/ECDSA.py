@@ -10,6 +10,11 @@ Gx = 0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296
 Gy = 0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5
 G = (Gx, Gy)
 
+# Elgamal c1 and c2 cipher text message
+c1 = "449f682509c223a6a9449a6228f5d22183a2755b212f39fb4eeabb86ad0597b768af49f33cbf95a7565973550a186f5793d0d4a5b60e06aa50c9992dbab59c246ec9df2f9138b9c2a6ced7f1483062083859f46881c58b02b72a10936cd29fc0"
+c2 = "88c0559d7818bc37962e17a80ffc25cea6a664f705b549c044fe179cee142952885c8b5edad9f806abace31fc158741dea87aa8727c59d74f6bee461ff07ce696ec9df2f9138b9c2a6ced7f1483062083859f46881c58b02b72a10936cd29fc0"
+
+
 # Elliptic curve point addition
 def point_add(point1, point2):
     if point1 is None:
@@ -77,8 +82,14 @@ bob_public_key = get_public_key(bob_private_key)
 
 # Alice sends a message to Bob
 message = "Hello, Bob!"
-signature = sign(alice_private_key, message)
+# Elgamal c1 and c2 cipher text message
+message_ELGmal = (c1, c2)
+new_message = ''.join(message_ELGmal)
+signature = sign(alice_private_key, new_message)
+
+# signature for string message
+# signature = sign(alice_private_key, message)
 
 # Bob verifies the message
-verification = verify(alice_public_key, message, signature)
+verification = verify(alice_public_key, new_message, signature)
 print("Verification:", verification)
