@@ -641,30 +641,39 @@ for (bin, hex) in bin2hex.items():
 
 def bitstring2hexstring(b):
     """Take bitstring 'b' and return the corresponding hexstring."""
-
-    result = ""
-    l = len(b)
-    if l % 4:
-        b = b + "0" * (4 - (l % 4))
-    for i in range(0, len(b), 4):
-        result = result + bin2hex[b[i:i + 4]]
-    return reverseString(result)
+    try:
+        result = ""
+        l = len(b)
+        if l % 4:
+            b = b + "0" * (4 - (l % 4))
+        for i in range(0, len(b), 4):
+            result = result + bin2hex[b[i:i + 4]]
+        return reverseString(result)
+    except Exception as e:
+        print(e)
+        return
 
 
 def hexstring2bitstring(h):
     """Take hexstring 'h' and return the corresponding bitstring."""
-
-    result = ""
-    for c in reverseString(h):
-        result = result + hex2bin[c]
-    return result
+    try:
+        result = ""
+        for c in reverseString(h):
+            result = result + hex2bin[c]
+        return result
+    except Exception as e:
+        print(e)
+        return
 
 
 def reverseString(s):
+    try:
+        return ''.join(reversed(s))
+    except Exception as e:
+        print(e)
     # l = list(s)
     # l.reverse()
     # return string.join(l, "")
-    return ''.join(reversed(s))
 
 
 # --------------------------------------------------------------

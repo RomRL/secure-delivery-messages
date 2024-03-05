@@ -1,11 +1,12 @@
 import hashlib
 import random
 
+
 class ECDSA:
     def __init__(self):
         # Define the elliptic curve parameters for the P-256 curve
         self.p = 0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff
-        self.a = -3
+        self.a = 0xffffffff00000001000000000000000000000000fffffffffffffffffffffffc
         self.b = 0x5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b
         self.n = 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551
         self.Gx = 0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296
@@ -76,4 +77,13 @@ class ECDSA:
         private_key = self.gen_private_key()
         public_key = self.get_public_key(private_key)
         return public_key, private_key
-    
+
+    def __str__(self):
+        return f"""
+        \np ( The Prime ): <span style='color:#FF00FF'> {self.p}</span>\n
+        \n a ( Ax ): <span style='color:#FF00FF'> {self.a}</span>\n
+      \n  b ( + B ): <span style='color:#FF00FF'> {self.b}</span>\n
+       \n n ( The Order ): <span style='color:#FF00FF'> {self.n}</span>\n
+       \n Gx ( x-coordinate of the base point G ): <span style='color:#FF00FF'> {self.Gx}</span>\n
+       \n Gy ( y-coordinate of the base point G ): <span style='color:#FF00FF'> {self.Gy}</span>\n
+        """
