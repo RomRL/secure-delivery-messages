@@ -367,24 +367,27 @@ def encryptBitslice(plainText, userKey):
 
 
 def decrypt(cipherText, userKey):
-    """Decrypt the 128-bit bitstring 'cipherText' with the 256-bit
-    bitstring 'userKey', using the normal algorithm, and return a 128-bit
-    plaintext bitstring."""
+    try:
+        """Decrypt the 128-bit bitstring 'cipherText' with the 256-bit
+        bitstring 'userKey', using the normal algorithm, and return a 128-bit
+        plaintext bitstring."""
 
-    O.show("fnTitle", "decrypt", None, "tu")
-    O.show("cipherText", cipherText, "cipherText")
-    O.show("userKey", userKey, "userKey")
+        O.show("fnTitle", "decrypt", None, "tu")
+        O.show("cipherText", cipherText, "cipherText")
+        O.show("userKey", userKey, "userKey")
 
-    K, KHat = makeSubkeys(userKey)
+        K, KHat = makeSubkeys(userKey)
 
-    BHat = FPInverse(cipherText)  # BHat_r at this stage
-    for i in range(r - 1, -1, -1):  # from r-1 down to 0 included
-        BHat = RInverse(i, BHat, KHat)  # Produce BHat_i from BHat_i+1
-    # BHat is now _0
-    plainText = IPInverse(BHat)
+        BHat = FPInverse(cipherText)  # BHat_r at this stage
+        for i in range(r - 1, -1, -1):  # from r-1 down to 0 included
+            BHat = RInverse(i, BHat, KHat)  # Produce BHat_i from BHat_i+1
+        # BHat is now _0
+        plainText = IPInverse(BHat)
 
-    O.show("plainText", plainText, "plainText")
-    return plainText
+        O.show("plainText", plainText, "plainText")
+        return plainText
+    except Exception as e:
+        print(e)
 
 
 def decryptBitslice(cipherText, userKey):
@@ -638,30 +641,39 @@ for (bin, hex) in bin2hex.items():
 
 def bitstring2hexstring(b):
     """Take bitstring 'b' and return the corresponding hexstring."""
-
-    result = ""
-    l = len(b)
-    if l % 4:
-        b = b + "0" * (4 - (l % 4))
-    for i in range(0, len(b), 4):
-        result = result + bin2hex[b[i:i + 4]]
-    return reverseString(result)
+    try:
+        result = ""
+        l = len(b)
+        if l % 4:
+            b = b + "0" * (4 - (l % 4))
+        for i in range(0, len(b), 4):
+            result = result + bin2hex[b[i:i + 4]]
+        return reverseString(result)
+    except Exception as e:
+        print(e)
+        return
 
 
 def hexstring2bitstring(h):
     """Take hexstring 'h' and return the corresponding bitstring."""
-
-    result = ""
-    for c in reverseString(h):
-        result = result + hex2bin[c]
-    return result
+    try:
+        result = ""
+        for c in reverseString(h):
+            result = result + hex2bin[c]
+        return result
+    except Exception as e:
+        print(e)
+        return
 
 
 def reverseString(s):
+    try:
+        return ''.join(reversed(s))
+    except Exception as e:
+        print(e)
     # l = list(s)
     # l.reverse()
     # return string.join(l, "")
-    return ''.join(reversed(s))
 
 
 # --------------------------------------------------------------
@@ -829,8 +841,11 @@ class SerpentEncryptor:
 
 class SerpentDecryptor:
     def __init__(self, userKey):
-        self.userKey = userKey
-        self.K, self.KHat = makeSubkeys(userKey)
+        try:
+            self.userKey = userKey
+            self.K, self.KHat = makeSubkeys(userKey)
+        except Exception as e:
+            print(e)
 
     def decrypt(self, cipherText):
         # Convert ciphertext to bitstring
