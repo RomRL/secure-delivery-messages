@@ -52,24 +52,24 @@ def get_public_key(private_key):
 
 # ECDSA signature generation
 def sign(private_key, message):
-    z = int(hashlib.sha256(message.encode()).hexdigest(), 16)
+    e = int(hashlib.sha256(message.encode()).hexdigest(), 16)
     r = 0
     s = 0
     while r == 0 or s == 0:
         k = random.randrange(1, n)
         x, _ = point_mul(G, k)
         r = x % n
-        s = pow(k, n - 2, n) * (z + r * private_key) % n
-    return (r, s)
+        s = pow(k, n - 2, n) * (e + r * private_key) % n
+    return (r, s) # ECDSA signature on message
 
 # ECDSA signature verification
 def verify(public_key, message, signature):
     r, s = signature
     if not (1 <= r < n and 1 <= s < n):
         return False
-    z = int(hashlib.sha256(message.encode()).hexdigest(), 16)
+    e = int(hashlib.sha256(message.encode()).hexdigest(), 16)
     w = pow(s, n - 2, n)
-    u1 = z * w % n
+    u1 = e * w % n
     u2 = r * w % n
     x, _ = point_add(point_mul(G, u1), point_mul(public_key, u2))
     return x % n == r
