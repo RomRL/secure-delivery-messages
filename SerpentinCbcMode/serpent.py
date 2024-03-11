@@ -1,5 +1,6 @@
 import re
-from SerpentinCbcMode.data_table_values import bin2hex, r, phi, SBoxDecimalTable, LTTable, LTTableInverse, IPTable, FPTable
+from SerpentinCbcMode.data_table_values import bin2hex, r, phi, SBoxDecimalTable, LTTable, LTTableInverse, IPTable, \
+    FPTable
 
 
 # --------------------------------------------------------------
@@ -310,7 +311,8 @@ def encrypt(plainText, userKey):
     O.show("userKey", userKey, "userKey")
 
     """
-    Key Schedule: Serpent begins with the generation of 33 128-bit subkeys from the original key, regardless of its size (128, 192, or 256 bits). This is done through a pre-defined 
+    Key Schedule: Serpent begins with the generation of 33 128-bit 
+    subkeys from the original key, regardless of its size (128, 192, or 256 bits). This is done through a pre-defined 
     process that includes permutations and translations.
     """
     K, KHat = makeSubkeys(userKey)
@@ -590,6 +592,7 @@ def rotateLeft(input, places):
     except Exception as e:
         print(e)
 
+
 def rotateRight(input, places):
     return rotateLeft(input, -places)
 
@@ -630,7 +633,6 @@ def keyLengthInBitsOf(k):
     """Take a string k in I/O format and return the number of bits in it."""
 
     return len(k) * 4
-
 
 
 # Make the reverse lookup table too
@@ -790,8 +792,6 @@ for line in SBoxDecimalTable:
     SBoxBitstringInverse.append(inverseDict)
 
 
-
-
 def convertToBitstring(input, numBits):
     """Take a string 'input', theoretically in std I/O format, but in
     practice liable to contain any sort of crap since it's user supplied,
@@ -829,7 +829,6 @@ class SerpentEncryptor:
             self.K, self.KHat = makeSubkeys(userKey)
         except Exception as e:
             print(e)
-
 
     def encrypt(self, plainText):
         # Convert plaintext to bitstring, assuming it's in hex format for this example
@@ -882,4 +881,3 @@ def main():
         print("The decryption was successful and matches the original plaintext.")
     else:
         print("The decrypted text does not match the original plaintext.")
-
