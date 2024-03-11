@@ -54,7 +54,7 @@ class ECDSA:
         r = 0
         s = 0
         while r == 0 or s == 0:
-            k = random.randrange(1, self.n)
+            k = random.randrange(1, self.n-1)
             x, _ = self.point_mul(self.G, k)
             r = x % self.n
             s = pow(k, self.n - 2, self.n) * (e + r * private_key) % self.n
@@ -66,7 +66,7 @@ class ECDSA:
         if not (1 <= r < self.n and 1 <= s < self.n):
             return False
         e = int(hashlib.sha256(message.encode()).hexdigest(), 16)
-        w = pow(s, self.n - 2, self.n)
+        w = pow(s, self.n - 2, self.n) #(s^(-1)) modn
         u1 = e * w % self.n
         u2 = r * w % self.n
         x, _ = self.point_add(self.point_mul(self.G, u1), self.point_mul(public_key, u2))

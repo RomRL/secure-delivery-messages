@@ -55,7 +55,7 @@ def is_prime(n, k=5):
 
 
 # Generate ElGamal key pair
-def generate_keypair(p:int,g:int):
+def generate_keypair(p: int, g: int):
     # Generate private key x
     k = random.randint(2, p - 2)
     # Calculate public key y
@@ -64,7 +64,7 @@ def generate_keypair(p:int,g:int):
 
 
 # Encrypt key (message)
-def encrypt_key(key,private_key, public_key):
+def encrypt_key(key, private_key, public_key):
     p, g, y = public_key
     k = random.randint(2, p - 2)
     c1 = mod_exp(g, private_key, p)

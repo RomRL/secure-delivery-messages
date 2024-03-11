@@ -84,6 +84,7 @@ def send_message(message, sender):
             st.session_state.public_key_alice_elgamal, st.session_state.private_key_alice_elgamal = generate_keypair(
                 st.session_state.p, st.session_state.g)
             st.session_state.public_key_alice_ecdsa, st.session_state.private_key_alice_ecdsa = st.session_state.ecdsa.gen_ecdsa_key_pair()
+
             hexKey = generate_random_hex_key(64)
             key_to_transport = int(hexKey, 16)
             cipher_key = encrypt_key(key=key_to_transport, private_key=st.session_state.private_key_alice_elgamal,
